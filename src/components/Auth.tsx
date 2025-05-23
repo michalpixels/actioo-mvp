@@ -10,6 +10,7 @@ export default function Auth() {
   const [name, setName] = useState('')
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState('')
+  const [messageType, setMessageType] = useState<'success' | 'error'>('error')
   const router = useRouter()
 
   const supabase = createClient()
@@ -32,6 +33,7 @@ export default function Auth() {
         })
         if (error) throw error
         setMessage('Check your email for the confirmation link!')
+        setMessageType('success')
       } else {
         const { data, error } = await supabase.auth.signInWithPassword({
           email,
@@ -42,6 +44,7 @@ export default function Auth() {
       }
     } catch (error: any) {
       setMessage(error.message)
+      setMessageType('error')
     } finally {
       setLoading(false)
     }
@@ -57,6 +60,13 @@ export default function Auth() {
           {isSignUp ? 'Connect with your local action sports scene' : 'Sign in to discover spots and sessions'}
         </p>
       </div>
+
+      {/* Success message appears here for signup */}
+      {message && messageType === 'success' && isSignUp && (
+        <div className="mb-6 p-3 rounded-md text-sm bg-green-100 text-green-700 border border-green-200">
+          {message}
+        </div>
+      )}
       
       <form onSubmit={handleAuth} className="space-y-4">
         {isSignUp && (
@@ -106,12 +116,9 @@ export default function Auth() {
         </button>
       </form>
       
-      {message && (
-        <div className={`mt-4 p-3 rounded-md text-sm ${
-          message.includes('Check your email') 
-            ? 'bg-green-100 text-green-700 border border-green-200' 
-            : 'bg-red-100 text-red-700 border border-red-200'
-        }`}>
+      {/* Error messages appear here */}
+      {message && messageType === 'error' && (
+        <div className="mt-4 p-3 rounded-md text-sm bg-red-100 text-red-700 border border-red-200">
           {message}
         </div>
       )}
@@ -121,7 +128,11 @@ export default function Auth() {
           {isSignUp ? 'Already have an account? ' : "Don't have an account? "}
           <button
             type="button"
-            onClick={() => setIsSignUp(!isSignUp)}
+            onClick={() => {
+              setIsSignUp(!isSignUp)
+              setMessage('') // Clear any messages when switching
+              setMessageType('error')
+            }}
             className="text-blue-600 hover:text-blue-700 font-medium hover:underline"
           >
             {isSignUp ? 'Sign In' : 'Sign Up'}
