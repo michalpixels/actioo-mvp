@@ -103,9 +103,6 @@ export default async function Home() {
   return (
     <div className="min-h-screen bg-gray-50">
       <SuccessMessage />
-      
-      // src/app/page.tsx - HEADER SECTION ONLY (replace just the header part)
-// Find this section in your page.tsx and replace it:
 
       {/* Header */}
       <header className="bg-white shadow-sm border-b border-gray-200">
