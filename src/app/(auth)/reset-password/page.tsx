@@ -1,6 +1,9 @@
-// src/app/(auth)/reset-password/page.tsx
+// src/app/(auth)/reset-password/page.tsx - FIXED VERSION
 import ResetPasswordForm from '@/components/auth/ResetPasswordForm'
 import Link from 'next/link'
+
+// Make this page dynamic to avoid static generation issues
+export const dynamic = 'force-dynamic'
 
 export default function ResetPasswordPage() {
   return (

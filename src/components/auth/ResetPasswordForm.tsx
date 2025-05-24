@@ -1,10 +1,10 @@
 'use client'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { createClient } from '@/lib/supabase'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { CheckCircle, AlertCircle, Eye, EyeOff } from 'lucide-react'
 
-export default function ResetPasswordForm() {
+function ResetPasswordFormContent() {
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [loading, setLoading] = useState(false)
@@ -251,5 +251,20 @@ export default function ResetPasswordForm() {
         </button>
       </form>
     </div>
+  )
+}
+
+export default function ResetPasswordForm() {
+  return (
+    <Suspense fallback={
+      <div className="bg-white py-8 px-6 shadow-lg rounded-lg border border-gray-200">
+        <div className="animate-pulse">
+          <div className="h-4 bg-gray-200 rounded w-3/4 mb-4"></div>
+          <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+        </div>
+      </div>
+    }>
+      <ResetPasswordFormContent />
+    </Suspense>
   )
 }

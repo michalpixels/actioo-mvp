@@ -1,6 +1,9 @@
-// src/app/(auth)/forgot-password/page.tsx
+// src/app/(auth)/forgot-password/page.tsx - FIXED VERSION
 import ForgotPasswordForm from '@/components/auth/ForgotPasswordForm'
 import Link from 'next/link'
+
+// Make this page dynamic to avoid static generation issues
+export const dynamic = 'force-dynamic'
 
 export default function ForgotPasswordPage() {
   return (
