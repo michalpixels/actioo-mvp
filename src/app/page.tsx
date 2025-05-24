@@ -4,6 +4,7 @@ import Auth from '@/components/Auth'
 import MapComponent from '@/components/MapComponent'
 import SuccessMessage from '@/components/SuccessMessage'
 import { Users, MapPin, Calendar, TrendingUp } from 'lucide-react'
+import SignOutButton from '@/components/SignOutButton'
 
 async function getAuthenticatedSession() {
   const supabase = await createServerSupabaseClient()
@@ -103,6 +104,9 @@ export default async function Home() {
     <div className="min-h-screen bg-gray-50">
       <SuccessMessage />
       
+      // src/app/page.tsx - HEADER SECTION ONLY (replace just the header part)
+// Find this section in your page.tsx and replace it:
+
       {/* Header */}
       <header className="bg-white shadow-sm border-b border-gray-200">
         <div className="container mx-auto px-4 py-4">
@@ -120,11 +124,8 @@ export default async function Home() {
                 <p className="text-sm text-gray-600">Welcome back,</p>
                 <p className="font-semibold text-gray-900">{profile?.name} 🤘</p>
               </div>
-              <form action="/auth/signout" method="post">
-                <button className="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600 transition-colors text-sm">
-                  Sign Out
-                </button>
-              </form>
+              
+              <SignOutButton />
             </div>
           </div>
         </div>
