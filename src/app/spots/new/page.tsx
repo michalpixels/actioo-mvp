@@ -1,12 +1,30 @@
+// src/app/spots/new/page.tsx - SECURE VERSION
 import { createServerSupabaseClient } from '@/lib/supabase'
 import { redirect } from 'next/navigation'
 import AddSpotForm from '@/components/AddSpotForm'
 
-export default async function NewSpotPage() {
+async function getAuthenticatedUser() {
   const supabase = await createServerSupabaseClient()
-  const { data: { session } } = await supabase.auth.getSession()
+  
+  try {
+    // Use secure getUser() method
+    const { data: { user }, error } = await supabase.auth.getUser()
+    
+    if (!error && user) {
+      return user
+    }
+  } catch (error) {
+    console.log('User not authenticated')
+  }
+  
+  return null
+}
 
-  if (!session) {
+export default async function NewSpotPage() {
+  // Use secure authentication check
+  const user = await getAuthenticatedUser()
+
+  if (!user) {
     redirect('/')
   }
 

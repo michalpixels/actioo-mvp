@@ -1,13 +1,34 @@
+// src/app/page.tsx - CLEAN FIX - Replace your current page.tsx
 import { createServerSupabaseClient } from '@/lib/supabase'
 import Auth from '@/components/Auth'
 import MapComponent from '@/components/MapComponent'
 import SuccessMessage from '@/components/SuccessMessage'
 import { Users, MapPin, Calendar, TrendingUp } from 'lucide-react'
 
+async function getAuthenticatedSession() {
+  const supabase = await createServerSupabaseClient()
+  
+  try {
+    // Try getUser() first (secure method)
+    const { data: { user }, error } = await supabase.auth.getUser()
+    
+    if (!error && user) {
+      // Return a session-like object for compatibility
+      return { session: { user } }
+    }
+  } catch (error) {
+    // If getUser() fails, user is not authenticated
+    console.log('User not authenticated')
+  }
+  
+  return { session: null }
+}
+
 export default async function Home() {
   const supabase = await createServerSupabaseClient()
   
-  const { data: { session } } = await supabase.auth.getSession()
+  // Use secure authentication method
+  const { session } = await getAuthenticatedSession()
   
   // If not logged in, show auth page
   if (!session) {
@@ -50,7 +71,7 @@ export default async function Home() {
     )
   }
 
-  // Get user data and spots - FIXED to calculate counts from actual data
+  // Get user data and spots using secure session
   const [
     { data: profile },
     { data: spots },
@@ -72,20 +93,11 @@ export default async function Home() {
       .select('id')
   ])
 
-  // Calculate counts from actual data instead of using count queries
+  // Calculate counts from actual data
   const totalSpots = spots?.length || 0
   const totalUsers = allUsers?.length || 0
   const userSpots = spots?.filter(spot => spot.created_by === session.user.id) || []
   const userSpotsCount = userSpots.length
-
-  // Debug logging (remove in production)
-  console.log('Dashboard data FIXED:', {
-    profile: profile,
-    totalSpots,
-    totalUsers,
-    userSpotsCount,
-    allSpotsArray: spots?.map(s => ({ id: s.id, name: s.name, created_by: s.created_by }))
-  })
 
   return (
     <div className="min-h-screen bg-gray-50">
