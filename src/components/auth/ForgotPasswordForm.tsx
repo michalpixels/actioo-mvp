@@ -9,6 +9,9 @@ export default function ForgotPasswordForm() {
   const [message, setMessage] = useState('')
   const [messageType, setMessageType] = useState<'success' | 'error'>('error')
   const [emailSent, setEmailSent] = useState(false)
+  
+  // ✅ ADD: State to prevent rapid "try again" clicks
+  const [canTryAgain, setCanTryAgain] = useState(true)
 
   const supabase = createClient()
 
@@ -29,12 +32,33 @@ export default function ForgotPasswordForm() {
       setEmailSent(true)
       setMessage('Check your email for the password reset link!')
       setMessageType('success')
+      
+      // ✅ ADD: Prevent rapid "try again" for 30 seconds
+      setCanTryAgain(false)
+      setTimeout(() => {
+        setCanTryAgain(true)
+      }, 30000) // 30 seconds
+      
     } catch (error: any) {
       setMessage(error.message || 'An error occurred. Please try again.')
       setMessageType('error')
     } finally {
       setLoading(false)
     }
+  }
+
+  // ✅ MODIFY: Handle try again with timing check
+  const handleTryAgain = () => {
+    if (!canTryAgain) {
+      setMessage('Please wait 30 seconds before requesting another reset link.')
+      setMessageType('error')
+      return
+    }
+    
+    setEmailSent(false)
+    setEmail('')
+    setMessage('')
+    setCanTryAgain(true) // Reset for new attempt
   }
 
   if (emailSent) {
@@ -60,16 +84,30 @@ export default function ForgotPasswordForm() {
                 </div>
               </div>
             </div>
+            
+            {/* ✅ MODIFY: Try again button with timing protection */}
             <button
-              onClick={() => {
-                setEmailSent(false)
-                setEmail('')
-                setMessage('')
-              }}
-              className="text-sm text-blue-600 hover:text-blue-700 font-medium hover:underline"
+              onClick={handleTryAgain}
+              disabled={!canTryAgain}
+              className={`text-sm font-medium hover:underline ${
+                !canTryAgain 
+                  ? 'text-gray-400 cursor-not-allowed' 
+                  : 'text-blue-600 hover:text-blue-700'
+              }`}
             >
-              Didn't receive it? Try again
+              {!canTryAgain 
+                ? "Please wait 30 seconds..." 
+                : "Didn't receive it? Try again"
+              }
             </button>
+            
+            {/* ✅ ADD: Show message if user tries too soon */}
+            {message && messageType === 'error' && (
+              <div className="mt-2 p-2 rounded-md text-xs bg-yellow-100 text-yellow-700 border border-yellow-200">
+                <AlertCircle className="h-3 w-3 inline mr-1" />
+                {message}
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -96,7 +134,7 @@ export default function ForgotPasswordForm() {
           />
         </div>
 
-        {message && (
+        {message && !emailSent && (
           <div className={`p-3 rounded-md text-sm flex items-start space-x-2 ${
             messageType === 'success' 
               ? 'bg-green-100 text-green-700 border border-green-200'

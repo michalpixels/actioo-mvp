@@ -1,10 +1,11 @@
-// src/app/page.tsx - CLEAN FIX - Replace your current page.tsx
+// src/app/page.tsx - UPDATED with Smart Profile Display
 import { createServerSupabaseClient } from '@/lib/supabase'
 import Auth from '@/components/Auth'
 import MapComponent from '@/components/MapComponent'
 import SuccessMessage from '@/components/SuccessMessage'
-import { Users, MapPin, Calendar, TrendingUp } from 'lucide-react'
+import SmartProfileDisplay from '@/components/profile/SmartProfileDisplay' // ✅ CHANGED
 import SignOutButton from '@/components/SignOutButton'
+import { Users, MapPin, Calendar, TrendingUp } from 'lucide-react'
 
 async function getAuthenticatedSession() {
   const supabase = await createServerSupabaseClient()
@@ -72,7 +73,7 @@ export default async function Home() {
     )
   }
 
-  // Get user data and spots using secure session
+  // Get user data and spots using secure session - ENHANCED with new profile fields
   const [
     { data: profile },
     { data: spots },
@@ -80,7 +81,16 @@ export default async function Home() {
   ] = await Promise.all([
     supabase
       .from('profiles')
-      .select('*')
+      .select(`
+        *,
+        bio,
+        profile_photo_url,
+        instagram_handle,
+        privacy_settings,
+        email_preferences,
+        achievements,
+        spots_discovered
+      `)
       .eq('id', session.user.id)
       .single(),
     
@@ -103,7 +113,7 @@ export default async function Home() {
   return (
     <div className="min-h-screen bg-gray-50">
       <SuccessMessage />
-
+      
       {/* Header */}
       <header className="bg-white shadow-sm border-b border-gray-200">
         <div className="container mx-auto px-4 py-4">
@@ -122,6 +132,17 @@ export default async function Home() {
                 <p className="font-semibold text-gray-900">{profile?.name} 🤘</p>
               </div>
               
+              {/* Profile Photo in Header */}
+              {profile?.profile_photo_url && (
+                <div className="w-8 h-8 rounded-full overflow-hidden border-2 border-blue-200">
+                  <img 
+                    src={profile.profile_photo_url} 
+                    alt={profile.name}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              )}
+              
               <SignOutButton />
             </div>
           </div>
@@ -129,6 +150,26 @@ export default async function Home() {
       </header>
 
       <div className="container mx-auto px-4 py-8">
+        {/* Welcome Banner for new users or incomplete profiles */}
+        {(!profile?.sport || !profile?.location) && (
+          <div className="bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg p-6 mb-8">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-xl font-bold mb-2">Complete Your Athlete Profile!</h2>
+                <p className="text-blue-100">
+                  Tell the community about your sport, location, and experience to connect with fellow athletes.
+                </p>
+              </div>
+              <a
+                href="/profile/edit"
+                className="bg-white text-blue-600 px-6 py-2 rounded-md font-medium hover:bg-blue-50 transition-colors"
+              >
+                Complete Profile
+              </a>
+            </div>
+          </div>
+        )}
+
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
           <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
@@ -213,30 +254,13 @@ export default async function Home() {
 
           {/* Sidebar */}
           <div className="space-y-6">
-            {/* Profile Card */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-              <h3 className="text-lg font-bold text-gray-900 mb-4">Your Profile</h3>
-              <div className="space-y-3">
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Sport:</span>
-                  <span className="font-medium text-gray-900 capitalize">
-                    {profile?.sport || 'Not set'}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Level:</span>
-                  <span className="font-medium text-gray-900 capitalize">
-                    {profile?.skill_level || 'Beginner'}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Location:</span>
-                  <span className="font-medium text-gray-900">
-                    {profile?.location || 'Not set'}
-                  </span>
-                </div>
-              </div>
-            </div>
+            {/* Enhanced Profile Card */}
+            {profile && (
+              <SmartProfileDisplay 
+                initialProfile={profile} 
+                userSpotsCount={userSpotsCount}
+              />
+            )}
 
             {/* Recent Spots */}
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
@@ -272,6 +296,12 @@ export default async function Home() {
                   className="block w-full bg-blue-600 text-white text-center py-2 px-4 rounded-md hover:bg-blue-700 transition-colors text-sm font-medium"
                 >
                   Add New Spot
+                </a>
+                <a
+                  href="/profile/edit"
+                  className="block w-full bg-gray-600 text-white text-center py-2 px-4 rounded-md hover:bg-gray-700 transition-colors text-sm font-medium"
+                >
+                  Edit Profile
                 </a>
                 <button
                   disabled
